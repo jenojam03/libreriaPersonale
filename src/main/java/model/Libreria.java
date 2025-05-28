@@ -8,6 +8,7 @@ public class Libreria {
 
     private Map<String, Libro> libri = new HashMap<>();
     private List<ObserverIF> observers = new ArrayList<>();
+    private List<Libro> daVisualizzare = new ArrayList<>();
 
     public boolean aggiungiLibro(Libro libro) {
         //prevenzione duplicati
@@ -124,14 +125,11 @@ public class Libreria {
 
     //ORDINAMENTO
     public List<Libro> ordinaPerTitolo(List<Libro> libri, boolean crescente){
-        Collections.sort(libri, new Comparator<Libro>() {
-            @Override
-            public int compare(Libro l1, Libro l2) {
-                if(crescente)
-                    return l1.getTitolo().compareToIgnoreCase(l2.getTitolo());
-                else
-                    return l2.getTitolo().compareToIgnoreCase(l1.getTitolo());
-            }
+        Collections.sort(libri, (l1, l2) -> {
+            if(crescente)
+                return l1.getTitolo().compareToIgnoreCase(l2.getTitolo());
+            else
+                return l2.getTitolo().compareToIgnoreCase(l1.getTitolo());
         });
         return libri;
     }

@@ -11,8 +11,8 @@ import java.util.*;
 
 public class FacadeLibreria {
 
-        private Libreria libreria = new Libreria();
-        private HistoryCommandHandler handler = new HistoryCommandHandler();
+        private final Libreria libreria = new Libreria();
+        private final HistoryCommandHandler handler = new HistoryCommandHandler();
 
         public FacadeLibreria() throws IOException {
             Map<String,Libro> libri = JsonStorageManager.caricamento();

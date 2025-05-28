@@ -16,6 +16,10 @@ public class GUI extends JFrame implements ObserverIF {
     private JPanel cardsPanel;
     private List<Libro> libriVisualizzati = new ArrayList<>();
 
+    //per il filtraggio
+    private Genere filtroGenere;
+    private StatoLettura filtroStato;
+
     public GUI() {
         try {
             COSTANTI.percorso = ConfigManager.caricaPercorso();
@@ -341,16 +345,21 @@ public class GUI extends JFrame implements ObserverIF {
             for (int i = 0; i < generiBox.length; i++) {
                 if (generiBox[i].isSelected()) {
                     genere = Genere.values()[i];
+                    filtroGenere = genere;
                     break;
                 }
             }
 
+
+
             for (int i = 0; i < statiBox.length; i++) {
                 if (statiBox[i].isSelected()) {
                     stato = StatoLettura.values()[i];
+                    filtroStato = stato;
                     break;
                 }
             }
+
 
             List<Libro> filtrati = facade.filtra(genere, stato, libriVisualizzati);
             updateCards(filtrati);
@@ -360,6 +369,8 @@ public class GUI extends JFrame implements ObserverIF {
         JButton rimuoviFiltriBtn = new JButton("Rimuovi filtri");
         rimuoviFiltriBtn.addActionListener(e -> {
             updateCards(facade.getLibri().values());
+            filtroGenere = null;
+            filtroStato = null;
             dialog.dispose();
         });
 
