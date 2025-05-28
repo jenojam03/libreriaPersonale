@@ -16,6 +16,8 @@ public class GUI extends JFrame implements ObserverIF {
     private JPanel cardsPanel;
     private List<Libro> libriVisualizzati = new ArrayList<>();
     private List<Libro> risultatiBase;
+    private JButton undoButton;
+    private boolean ricercaAttiva = false;
 
 
     //per il filtraggio
@@ -81,6 +83,36 @@ public class GUI extends JFrame implements ObserverIF {
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        JButton redoButton = new JButton("Redo");
+        //bottone undo
+        undoButton = new JButton("Undo");
+        undoButton.addActionListener(e -> {
+            try {
+                facade.undo();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            redoButton.setEnabled(true);
+        });
+
+
+        //bottone redo
+
+        redoButton.addActionListener(e -> {
+            try {
+                facade.redo();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            undoButton.setEnabled(true);
+        });
+
+        //bottone aggiungi libro
+        JButton aggiungiBtn = new JButton("Aggiungi libro");
+        aggiungiBtn.setEnabled(!ricercaAttiva);
+        aggiungiBtn.addActionListener(ev -> mostraFinestraAggiunta(undoButton));
+
+
         //barra di ricerca
         JTextField searchField = new JTextField(20);
         searchField.addActionListener(e -> {
@@ -88,7 +120,7 @@ public class GUI extends JFrame implements ObserverIF {
             String query = searchField.getText().trim();
             if (!query.isEmpty()) {
                 facade.ricerca(query);
-
+                aggiungiBtn.setEnabled(false);
                 //memorizzo i risultati della ricerca per poterli filtrare in modi diversi
                 risultatiBase = facade.getDaVisualizzare();
             }
@@ -100,6 +132,7 @@ public class GUI extends JFrame implements ObserverIF {
             facade.mostraTutti(); // metodo esistente nella tua classe Libreria
             filtroStato = null;
             filtroGenere = null;
+            aggiungiBtn.setEnabled(true);
         });
 
 
@@ -143,32 +176,13 @@ public class GUI extends JFrame implements ObserverIF {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        //bottone undo
-        JButton undoButton = new JButton("Undo");
-        undoButton.addActionListener(e -> {
-            try {
-                facade.undo();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        });
 
 
-        //bottone redo
-        JButton redoButton = new JButton("Redo");
-        redoButton.addActionListener(e -> {
-            try {
-                facade.redo();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        });
 
 
-        //bottone aggiungi libro
-        JButton aggiungiBtn = new JButton("Aggiungi libro");
-        aggiungiBtn.addActionListener(ev -> mostraFinestraAggiunta());
 
+        redoButton.setEnabled(false);
+        undoButton.setEnabled(false);
         leftPanel.add(undoButton);
         leftPanel.add(redoButton);
         rightPanel.add(aggiungiBtn);
@@ -208,7 +222,7 @@ public class GUI extends JFrame implements ObserverIF {
         cardsPanel.repaint();
     }
 
-    private void mostraFinestraAggiunta() {
+    private void mostraFinestraAggiunta(JButton undo) {
         JDialog dialog = new JDialog();
         dialog.setTitle("Nuovo libro");
         dialog.setModal(true);
@@ -240,6 +254,7 @@ public class GUI extends JFrame implements ObserverIF {
                 JOptionPane.showMessageDialog(dialog, "Errore durante l'aggiunta del libro.", "Errore", JOptionPane.ERROR_MESSAGE);
             }
             dialog.dispose();
+            undo.setEnabled(true);
         });
 
         dialog.add(new JLabel("Titolo:")); dialog.add(titolo);
@@ -254,6 +269,7 @@ public class GUI extends JFrame implements ObserverIF {
     }
 
     private void mostraFinestraModifica(Libro libro) {
+
         JDialog dialog = new JDialog();
         dialog.setTitle("Modifica Libro");
         dialog.setModal(true);
@@ -271,7 +287,7 @@ public class GUI extends JFrame implements ObserverIF {
         JComboBox<StatoLettura> statoBox = new JComboBox<>(StatoLettura.values());
         statoBox.setSelectedItem(libro.getStatoLettura());
 
-        JSpinner valutazioneSpinner = new JSpinner(new SpinnerNumberModel(libro.getValutazione(), 0, 5, 1));
+        JSpinner valutazioneSpinner = new JSpinner(new SpinnerNumberModel(libro.getValutazione(), 1, 5, 1));
 
         JButton salva = new JButton("Modifica");
         salva.addActionListener(e -> {
@@ -291,6 +307,7 @@ public class GUI extends JFrame implements ObserverIF {
                 JOptionPane.showMessageDialog(dialog, "Errore durante la modifica.", "Errore", JOptionPane.ERROR_MESSAGE);
             }
             dialog.dispose();
+            undoButton.setEnabled(true);
         });
 
 
@@ -325,102 +342,115 @@ public class GUI extends JFrame implements ObserverIF {
 
     public void mostraFinestraFiltri() {
         JDialog dialog = new JDialog(this, "Filtra libri", true);
-        dialog.setSize(400, 300);
+        dialog.setSize(400, 300); // Aumentata
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Pannello principale per i filtri
         JPanel filtriPanel = new JPanel(new GridLayout(1, 2));
 
-        // Pannello Genere
+        // ===== GENERE =====
         JPanel generePanel = new JPanel();
         generePanel.setLayout(new BoxLayout(generePanel, BoxLayout.Y_AXIS));
         generePanel.setBorder(BorderFactory.createTitledBorder("Genere"));
 
-        ButtonGroup gruppoGeneri = new ButtonGroup();
-        JRadioButton[] generiBox = new JRadioButton[Genere.values().length];
-        for (int i = 0; i < Genere.values().length; i++) {
-            generiBox[i] = new JRadioButton(Genere.values()[i].toString());
-            gruppoGeneri.add(generiBox[i]);
-            generePanel.add(generiBox[i]);
+        List<JToggleButton> genereButtons = new ArrayList<>();
+        final JToggleButton[] selezionatoGenere = {null};
 
-            // Se c'è un filtro attivo, seleziona il radio button corrispondente
-            if (filtroGenere != null && Genere.values()[i] == filtroGenere) {
-                generiBox[i].setSelected(true);
+        for (Genere g : Genere.values()) {
+            JToggleButton btn = new JToggleButton(g.toString());
+            btn.setMaximumSize(new Dimension(200, 25)); // Rimpiccioliti
+            btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            if (filtroGenere != null && g == filtroGenere) {
+                btn.setSelected(true);
+                selezionatoGenere[0] = btn;
             }
+
+            btn.addActionListener(e -> {
+                if (btn.equals(selezionatoGenere[0])) {
+                    btn.setSelected(false);
+                    selezionatoGenere[0] = null;
+                } else {
+                    for (JToggleButton b : genereButtons) {
+                        b.setSelected(false);
+                    }
+                    btn.setSelected(true);
+                    selezionatoGenere[0] = btn;
+                }
+            });
+
+            genereButtons.add(btn);
+            generePanel.add(btn);
         }
 
+        JScrollPane genereScroll = new JScrollPane(generePanel);
+        genereScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        // Pannello Stato
+        // ===== STATO LETTURA =====
         JPanel statoPanel = new JPanel();
         statoPanel.setLayout(new BoxLayout(statoPanel, BoxLayout.Y_AXIS));
         statoPanel.setBorder(BorderFactory.createTitledBorder("Stato lettura"));
 
-        ButtonGroup gruppoStati = new ButtonGroup();
-        JRadioButton[] statiBox = new JRadioButton[StatoLettura.values().length];
-        for (int i = 0; i < StatoLettura.values().length; i++) {
-            statiBox[i] = new JRadioButton(StatoLettura.values()[i].toString());
-            gruppoStati.add(statiBox[i]);
-            statoPanel.add(statiBox[i]);
+        List<JToggleButton> statoButtons = new ArrayList<>();
+        final JToggleButton[] selezionatoStato = {null};
 
-            // Se c'è un filtro attivo, seleziona il radio button corrispondente
-            if (filtroStato != null && StatoLettura.values()[i] == filtroStato) {
-                statiBox[i].setSelected(true);
+        for (StatoLettura s : StatoLettura.values()) {
+            JToggleButton btn = new JToggleButton(s.toString());
+            btn.setMaximumSize(new Dimension(200, 25));
+            btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            if (filtroStato != null && s == filtroStato) {
+                btn.setSelected(true);
+                selezionatoStato[0] = btn;
             }
+
+            btn.addActionListener(e -> {
+                if (btn.equals(selezionatoStato[0])) {
+                    btn.setSelected(false);
+                    selezionatoStato[0] = null;
+                } else {
+                    for (JToggleButton b : statoButtons) {
+                        b.setSelected(false);
+                    }
+                    btn.setSelected(true);
+                    selezionatoStato[0] = btn;
+                }
+            });
+
+            statoButtons.add(btn);
+            statoPanel.add(btn);
         }
 
-        filtriPanel.add(generePanel);
+        filtriPanel.add(genereScroll);
         filtriPanel.add(statoPanel);
 
-        // Bottone filtra
+        // ===== BOTTONE FILTRA =====
         JButton filtraBtn = new JButton("Filtra");
         filtraBtn.addActionListener(e -> {
+            filtroGenere = null;
+            filtroStato = null;
 
-            Genere genere = null;
-            StatoLettura stato = null;
-
-
-            for (int i = 0; i < generiBox.length; i++) {
-                if (generiBox[i].isSelected()) {
-                    genere = Genere.values()[i];
-                    filtroGenere = genere;
-                    break;
-                }
+            if (selezionatoGenere[0] != null) {
+                filtroGenere = Genere.valueOf(selezionatoGenere[0].getText());
             }
 
-            for (int i = 0; i < statiBox.length; i++) {
-                if (statiBox[i].isSelected()) {
-                    stato = StatoLettura.values()[i];
-                    filtroStato = stato;
-                    break;
-                }
+            if (selezionatoStato[0] != null) {
+                filtroStato = StatoLettura.valueOf(selezionatoStato[0].getText());
             }
 
-
-            facade.filtra(genere, stato, risultatiBase);
-
+            facade.filtra(filtroGenere, filtroStato, risultatiBase);
             dialog.dispose();
         });
 
-        /*JButton rimuoviFiltriBtn = new JButton("Rimuovi filtri");
-        rimuoviFiltriBtn.addActionListener(e -> {
-            //update();
-            filtroGenere = null;
-            filtroStato = null;
-            dialog.dispose();
-        });*/
-
         JPanel btnPanel = new JPanel();
         btnPanel.add(filtraBtn);
-        //btnPanel.add(rimuoviFiltriBtn);
 
         dialog.add(filtriPanel, BorderLayout.CENTER);
         dialog.add(btnPanel, BorderLayout.SOUTH);
-
-        dialog.setVisible(true);;
-
-
+        dialog.setVisible(true);
     }
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
