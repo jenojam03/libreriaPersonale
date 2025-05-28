@@ -15,6 +15,8 @@ public class GUI extends JFrame implements ObserverIF {
     private FacadeLibreria facade;
     private JPanel cardsPanel;
     private List<Libro> libriVisualizzati = new ArrayList<>();
+    private List<Libro> risultatiBase;
+
 
     //per il filtraggio
     private Genere filtroGenere;
@@ -66,8 +68,9 @@ public class GUI extends JFrame implements ObserverIF {
     }
 
     @Override
-    public void update(Map<String, Libro> libri) {
-        updateCards(libri.values());
+    public void update() {
+        libriVisualizzati = facade.getDaVisualizzare();
+        updateCards(libriVisualizzati);
     }
 
     private void costruisciInterfaccia() {
@@ -78,17 +81,30 @@ public class GUI extends JFrame implements ObserverIF {
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        //barra di ricerca
         JTextField searchField = new JTextField(20);
         searchField.addActionListener(e -> {
+
             String query = searchField.getText().trim();
-            if (query.isEmpty()) {
-                updateCards(facade.getLibri().values());
-            } else {
-                List<Libro> risultati = facade.ricerca(query);
-                updateCards(risultati);
+            if (!query.isEmpty()) {
+                facade.ricerca(query);
+
+                //memorizzo i risultati della ricerca per poterli filtrare in modi diversi
+                risultatiBase = facade.getDaVisualizzare();
             }
         });
 
+        //indietro dalla ricerca
+        JButton indietroButton = new JButton("Indietro");
+        indietroButton.addActionListener(e -> {
+            facade.mostraTutti(); // metodo esistente nella tua classe Libreria
+            filtroStato = null;
+            filtroGenere = null;
+        });
+
+
+
+        //bottone per il filtro
         JButton filtroBtn = new JButton("Filtra");
         filtroBtn.addActionListener(e -> mostraFinestraFiltri());
 
@@ -99,19 +115,21 @@ public class GUI extends JFrame implements ObserverIF {
         };
         JComboBox<String> ordinaBox = new JComboBox<>(ordini);
         ordinaBox.addActionListener(eve -> {
+
             String criterio = (String) ordinaBox.getSelectedItem();
-            List<Libro> ordinati = switch (criterio) {
-                case "Titolo (A-Z)" -> facade.ordina(CriterioOrdinamento.TITOLO, true, libriVisualizzati);
-                case "Titolo (Z-A)" -> facade.ordina(CriterioOrdinamento.TITOLO, false, libriVisualizzati);
-                case "Autore (A-Z)" -> facade.ordina(CriterioOrdinamento.AUTORE, true, libriVisualizzati);
-                case "Autore (Z-A)" -> facade.ordina(CriterioOrdinamento.AUTORE, false, libriVisualizzati);
-                case "Valutazione (crescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, true, libriVisualizzati);
-                case "Valutazione (decrescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, false, libriVisualizzati);
+            switch (criterio) {
+                case "Titolo (A-Z)" -> facade.ordina(CriterioOrdinamento.TITOLO, true);
+                case "Titolo (Z-A)" -> facade.ordina(CriterioOrdinamento.TITOLO, false);
+                case "Autore (A-Z)" -> facade.ordina(CriterioOrdinamento.AUTORE, true);
+                case "Autore (Z-A)" -> facade.ordina(CriterioOrdinamento.AUTORE, false);
+                case "Valutazione (crescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, true);
+                case "Valutazione (decrescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, false);
                 default -> new ArrayList<>();
             };
-            updateCards(ordinati);
+            //update();
         });
 
+        topPanel.add(indietroButton);
         topPanel.add(new JLabel("Cerca:"));
         topPanel.add(searchField);
         topPanel.add(filtroBtn);
@@ -125,6 +143,7 @@ public class GUI extends JFrame implements ObserverIF {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
+        //bottone undo
         JButton undoButton = new JButton("Undo");
         undoButton.addActionListener(e -> {
             try {
@@ -134,6 +153,8 @@ public class GUI extends JFrame implements ObserverIF {
             }
         });
 
+
+        //bottone redo
         JButton redoButton = new JButton("Redo");
         redoButton.addActionListener(e -> {
             try {
@@ -143,6 +164,8 @@ public class GUI extends JFrame implements ObserverIF {
             }
         });
 
+
+        //bottone aggiungi libro
         JButton aggiungiBtn = new JButton("Aggiungi libro");
         aggiungiBtn.addActionListener(ev -> mostraFinestraAggiunta());
 
@@ -157,14 +180,14 @@ public class GUI extends JFrame implements ObserverIF {
         frame.add(scrollPane, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
-        updateCards(facade.getLibri().values());
+        facade.mostraTutti();
+        risultatiBase = facade.getDaVisualizzare();
 
         frame.setSize(1000, 700);
         frame.setVisible(true);
     }
 
-    private void updateCards(Collection<Libro> libri) {
-        libriVisualizzati = new ArrayList<>(libri);
+    private void updateCards(List<Libro> libri) {
         cardsPanel.removeAll();
         for (Libro libro : libri) {
             JPanel card = new JPanel();
@@ -270,6 +293,8 @@ public class GUI extends JFrame implements ObserverIF {
             dialog.dispose();
         });
 
+
+        //bottone rimuovi
         JButton rimuovi = new JButton("Rimuovi libro");
         rimuovi.addActionListener(e -> {
             int scelta = JOptionPane.showConfirmDialog(dialog, "Sei sicuro di voler rimuovere il libro?", "Conferma", JOptionPane.YES_NO_OPTION);
@@ -281,7 +306,7 @@ public class GUI extends JFrame implements ObserverIF {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(dialog, "Errore durante la rimozione.", "Errore", JOptionPane.ERROR_MESSAGE);
                 }
-                updateCards(facade.getLibri().values());
+                //update();
                 dialog.dispose();
             }
         });
@@ -318,7 +343,13 @@ public class GUI extends JFrame implements ObserverIF {
             generiBox[i] = new JRadioButton(Genere.values()[i].toString());
             gruppoGeneri.add(generiBox[i]);
             generePanel.add(generiBox[i]);
+
+            // Se c'è un filtro attivo, seleziona il radio button corrispondente
+            if (filtroGenere != null && Genere.values()[i] == filtroGenere) {
+                generiBox[i].setSelected(true);
+            }
         }
+
 
         // Pannello Stato
         JPanel statoPanel = new JPanel();
@@ -331,6 +362,11 @@ public class GUI extends JFrame implements ObserverIF {
             statiBox[i] = new JRadioButton(StatoLettura.values()[i].toString());
             gruppoStati.add(statiBox[i]);
             statoPanel.add(statiBox[i]);
+
+            // Se c'è un filtro attivo, seleziona il radio button corrispondente
+            if (filtroStato != null && StatoLettura.values()[i] == filtroStato) {
+                statiBox[i].setSelected(true);
+            }
         }
 
         filtriPanel.add(generePanel);
@@ -339,8 +375,10 @@ public class GUI extends JFrame implements ObserverIF {
         // Bottone filtra
         JButton filtraBtn = new JButton("Filtra");
         filtraBtn.addActionListener(e -> {
+
             Genere genere = null;
             StatoLettura stato = null;
+
 
             for (int i = 0; i < generiBox.length; i++) {
                 if (generiBox[i].isSelected()) {
@@ -349,8 +387,6 @@ public class GUI extends JFrame implements ObserverIF {
                     break;
                 }
             }
-
-
 
             for (int i = 0; i < statiBox.length; i++) {
                 if (statiBox[i].isSelected()) {
@@ -361,22 +397,22 @@ public class GUI extends JFrame implements ObserverIF {
             }
 
 
-            List<Libro> filtrati = facade.filtra(genere, stato, libriVisualizzati);
-            updateCards(filtrati);
+            facade.filtra(genere, stato, risultatiBase);
+
             dialog.dispose();
         });
 
-        JButton rimuoviFiltriBtn = new JButton("Rimuovi filtri");
+        /*JButton rimuoviFiltriBtn = new JButton("Rimuovi filtri");
         rimuoviFiltriBtn.addActionListener(e -> {
-            updateCards(facade.getLibri().values());
+            //update();
             filtroGenere = null;
             filtroStato = null;
             dialog.dispose();
-        });
+        });*/
 
         JPanel btnPanel = new JPanel();
         btnPanel.add(filtraBtn);
-        btnPanel.add(rimuoviFiltriBtn);
+        //btnPanel.add(rimuoviFiltriBtn);
 
         dialog.add(filtriPanel, BorderLayout.CENTER);
         dialog.add(btnPanel, BorderLayout.SOUTH);

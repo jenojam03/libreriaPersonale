@@ -64,32 +64,35 @@ public class FacadeLibreria {
         }
 
 
-    //metodo di ordinamento
-    public List<Libro> ordina(CriterioOrdinamento criterio, boolean crescente, List<Libro> libri) {
-        switch (criterio) {
-            case TITOLO: return libreria.ordinaPerTitolo(libri, crescente);
-            case AUTORE: return libreria.ordinaPerAutore(libri, crescente);
-            case VALUTAZIONE: return libreria.ordinaPerValutazione(libri, crescente);
-            default: return new ArrayList<>();
+        //metodo di ordinamento
+        public void ordina(CriterioOrdinamento criterio, boolean crescente) {
+            List<Libro> libri = getDaVisualizzare();
+            switch (criterio) {
+                case TITOLO: libreria.ordinaPerTitolo(libri, crescente); break;
+                case AUTORE:  libreria.ordinaPerAutore(libri, crescente); break;
+                case VALUTAZIONE:  libreria.ordinaPerValutazione(libri, crescente); break;
+                default:
+            }
         }
-    }
 
 
     //metodo di filtraggio
-    public List<Libro> filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare){
-            return libreria.filtra(genere, stato, daFiltrare);
+    public void filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare){
+            libreria.filtra(genere, stato, daFiltrare);
     }
 
     //metodo di ricerca: restituisce tutto ciò che matcha ciò che è stato inserito
-    public List<Libro> ricerca(String criterio){
-        Set<Libro> setTemporaneo = new HashSet<>(libreria.cercaPerTitolo(criterio));
-        setTemporaneo.addAll(libreria.cercaPerAutore(criterio));
-        Libro libroISBN = libreria.cercaPerISBN(criterio);
-        if (libroISBN != null) {
-            setTemporaneo.add(libroISBN);
-        }
-        return new ArrayList<>(setTemporaneo);
+    public void ricerca(String criterio){
+        libreria.ricerca( criterio );
 
+    }
+
+    public void mostraTutti(){
+            libreria.mostraTutti();
+    }
+
+    public List<Libro> getDaVisualizzare(){
+            return libreria.getDaVisualizzare();
     }
 
 
