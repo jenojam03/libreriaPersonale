@@ -17,9 +17,18 @@ public class ModificaCommand implements Command{
 
     @Override
     public boolean execute() {
-        vecchioLibro = libreria.getLibro(isbn);
-        //controllo se il libro da modificare esiste
-        if (vecchioLibro != null) {
+        Libro originale = libreria.getLibro(isbn);
+        if (originale != null) {
+            //deep copy del vecchio libro
+            vecchioLibro = new Libro(
+                    originale.getTitolo(),
+                    originale.getAutore(),
+                    originale.getISBN(),
+                    originale.getGenere(),
+                    originale.getStatoLettura(),
+                    originale.getValutazione(),
+                    originale.getNote()
+            );
             libreria.modificaLibro(isbn, nuovoLibro);
             return true;
         }

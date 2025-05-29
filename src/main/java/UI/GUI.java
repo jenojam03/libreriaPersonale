@@ -2,6 +2,11 @@ package UI;
 
 import controller.FacadeLibreria;
 import model.*;
+import strategy.OrdinaPerAutore;
+import strategy.OrdinaPerTitolo;
+import strategy.OrdinaPerValutazione;
+import strategy.OrdinamentoStrategy;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -110,7 +115,7 @@ public class GUI extends JFrame implements ObserverIF {
         //bottone aggiungi libro
         JButton aggiungiBtn = new JButton("Aggiungi libro");
         aggiungiBtn.setEnabled(!ricercaAttiva);
-        aggiungiBtn.addActionListener(ev -> mostraFinestraAggiunta(undoButton));
+        aggiungiBtn.addActionListener(ev -> {mostraFinestraAggiunta(); undoButton.setEnabled(true);} );
 
 
         //barra di ricerca
@@ -133,6 +138,7 @@ public class GUI extends JFrame implements ObserverIF {
             filtroStato = null;
             filtroGenere = null;
             aggiungiBtn.setEnabled(true);
+            risultatiBase=facade.getDaVisualizzare();
         });
 
 
@@ -149,15 +155,15 @@ public class GUI extends JFrame implements ObserverIF {
         JComboBox<String> ordinaBox = new JComboBox<>(ordini);
         ordinaBox.addActionListener(eve -> {
 
+            OrdinamentoStrategy strategy;
             String criterio = (String) ordinaBox.getSelectedItem();
             switch (criterio) {
-                case "Titolo (A-Z)" -> facade.ordina(CriterioOrdinamento.TITOLO, true);
-                case "Titolo (Z-A)" -> facade.ordina(CriterioOrdinamento.TITOLO, false);
-                case "Autore (A-Z)" -> facade.ordina(CriterioOrdinamento.AUTORE, true);
-                case "Autore (Z-A)" -> facade.ordina(CriterioOrdinamento.AUTORE, false);
-                case "Valutazione (crescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, true);
-                case "Valutazione (decrescente)" -> facade.ordina(CriterioOrdinamento.VALUTAZIONE, false);
-                default -> new ArrayList<>();
+                case "Titolo (A-Z)" -> facade.ordina(new OrdinaPerTitolo(),true);
+                case "Titolo (Z-A)" -> facade.ordina(new OrdinaPerTitolo(),false);
+                case "Autore (A-Z)" -> facade.ordina(new OrdinaPerAutore(), true);
+                case "Autore (Z-A)" -> facade.ordina(new OrdinaPerAutore(), false);
+                case "Valutazione (crescente)" -> facade.ordina(new OrdinaPerValutazione(), true);
+                case "Valutazione (decrescente)" -> facade.ordina(new OrdinaPerValutazione(), false);
             };
             //update();
         });
@@ -177,10 +183,6 @@ public class GUI extends JFrame implements ObserverIF {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 
-
-
-
-
         redoButton.setEnabled(false);
         undoButton.setEnabled(false);
         leftPanel.add(undoButton);
@@ -195,6 +197,8 @@ public class GUI extends JFrame implements ObserverIF {
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         facade.mostraTutti();
+
+        //inizializzato all'inizio
         risultatiBase = facade.getDaVisualizzare();
 
         frame.setSize(1000, 700);
@@ -214,6 +218,7 @@ public class GUI extends JFrame implements ObserverIF {
             card.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     mostraFinestraModifica(libro);
+                    undoButton.setEnabled(true);
                 }
             });
             cardsPanel.add(card);
@@ -222,7 +227,7 @@ public class GUI extends JFrame implements ObserverIF {
         cardsPanel.repaint();
     }
 
-    private void mostraFinestraAggiunta(JButton undo) {
+    private void mostraFinestraAggiunta() {
         JDialog dialog = new JDialog();
         dialog.setTitle("Nuovo libro");
         dialog.setModal(true);
@@ -235,12 +240,13 @@ public class GUI extends JFrame implements ObserverIF {
 
         JButton salva = new JButton("Salva");
         salva.addActionListener(e -> {
-            Libro libro = new Libro.LibroBuilder(
+            Libro libro = new Libro(
                     titolo.getText(),
                     autore.getText(),
                     isbn.getText(),
                     (Genere) genereBox.getSelectedItem()
-            ).build();
+            );
+
 
             try {
                 boolean ret = facade.aggiungiLibro(libro);
@@ -248,13 +254,12 @@ public class GUI extends JFrame implements ObserverIF {
                     JOptionPane.showMessageDialog(dialog, "Il libro inserito esiste già. Correggi l'ISBN.", "Libro duplicato", JOptionPane.WARNING_MESSAGE);
                     return; // NON chiudere la finestra, consenti la correzione
                 }
-                dialog.dispose();
+                //dialog.dispose();
             } catch (IOException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(dialog, "Errore durante l'aggiunta del libro.", "Errore", JOptionPane.ERROR_MESSAGE);
             }
             dialog.dispose();
-            undo.setEnabled(true);
         });
 
         dialog.add(new JLabel("Titolo:")); dialog.add(titolo);
@@ -287,18 +292,20 @@ public class GUI extends JFrame implements ObserverIF {
         JComboBox<StatoLettura> statoBox = new JComboBox<>(StatoLettura.values());
         statoBox.setSelectedItem(libro.getStatoLettura());
 
-        JSpinner valutazioneSpinner = new JSpinner(new SpinnerNumberModel(libro.getValutazione(), 1, 5, 1));
+        JSpinner valutazioneSpinner = new JSpinner(new SpinnerNumberModel(libro.getValutazione(), 0, 5, 1));
 
         JButton salva = new JButton("Modifica");
         salva.addActionListener(e -> {
-            Libro aggiornato = new Libro.LibroBuilder(
+
+            Libro aggiornato = new Libro(
                     libro.getTitolo(),
                     libro.getAutore(),
                     libro.getISBN(),
-                    libro.getGenere()
-            ).setStatoLettura((StatoLettura) statoBox.getSelectedItem())
-                    .setValutazione((Integer) valutazioneSpinner.getValue())
-                    .build();
+                    libro.getGenere(),
+                    (StatoLettura) statoBox.getSelectedItem(),
+                    (Integer) valutazioneSpinner.getValue(),
+                    libro.getNote() // o puoi anche permettere di modificare le note, se vuoi
+            );
 
             try {
                 facade.modificaLibro(libro.getISBN(), aggiornato);
@@ -314,10 +321,12 @@ public class GUI extends JFrame implements ObserverIF {
         //bottone rimuovi
         JButton rimuovi = new JButton("Rimuovi libro");
         rimuovi.addActionListener(e -> {
+
             int scelta = JOptionPane.showConfirmDialog(dialog, "Sei sicuro di voler rimuovere il libro?", "Conferma", JOptionPane.YES_NO_OPTION);
             if (scelta == JOptionPane.YES_OPTION) {
                 try {
                     facade.rimuoviLibro(libro.getISBN());
+                    undoButton.setEnabled(true);
 
                 } catch (IOException ex) {
                     ex.printStackTrace();

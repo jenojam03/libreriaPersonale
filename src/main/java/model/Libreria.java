@@ -1,14 +1,28 @@
 package model;
 import UI.*;
+import strategy.OrdinamentoStrategy;
+
 import java.util.*;
 
 
 //classe che rappresenta il sistema
 public class Libreria {
 
+    private static Libreria instance;
+
     private Map<String, Libro> libri = new HashMap<>(); //archivio di tutti i libri
     private List<ObserverIF> observers = new ArrayList<>();
     private List<Libro> daVisualizzare = new ArrayList<>(libri.values()); //vista
+
+    private Libreria() {}
+
+    public synchronized static Libreria getInstance() {
+        if (instance == null) {
+            instance = new Libreria();
+        }
+        return instance;
+    }
+
 
     public boolean aggiungiLibro(Libro libro) {
         //prevenzione duplicati
@@ -173,7 +187,7 @@ public class Libreria {
 
 
     //ORDINAMENTO
-    public void ordinaPerTitolo(List<Libro> libri, boolean crescente){
+    /*public void ordinaPerTitolo(List<Libro> libri, boolean crescente){
         libri.sort((l1, l2) -> {
             if (crescente)
                 return l1.getTitolo().compareToIgnoreCase(l2.getTitolo());
@@ -196,12 +210,21 @@ public class Libreria {
     }
 
     public void ordinaPerValutazione(List<Libro> libri, boolean crescente) {
-        libri.sort((l1, l2) -> {
+        /*libri.sort((l1, l2) -> {
             if (crescente)
                 return l1.getValutazione() > l2.getValutazione() ? 1 : -1;
             else
                 return l1.getValutazione() < l2.getValutazione() ? 1 : -1;
         });
+        daVisualizzare = libri;
+        notifyObservers();
+    }*/
+
+
+
+    //ORDINA
+    public void ordina(OrdinamentoStrategy strategia, List<Libro> libri, boolean crescente) {
+        strategia.ordina(libri, crescente);
         daVisualizzare = libri;
         notifyObservers();
     }

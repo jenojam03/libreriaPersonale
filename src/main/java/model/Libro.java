@@ -2,6 +2,8 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 public class Libro {
 
     private final String titolo;
@@ -9,10 +11,10 @@ public class Libro {
     private final String ISBN;
     private final Genere Genere;
     private StatoLettura statoLettura;
-    private int valutazione; //DA 1 A 5 (implementare controlli)
+    private int valutazione = 0; //DA 1 A 5
     private String note;
 
-    //INNER CLASS BUILDER PER LA COSTRUZIONE------------------------------------------------------------
+    /*//INNER CLASS BUILDER PER LA COSTRUZIONE------------------------------------------------------------
     public static class LibroBuilder {
 
         //Parametri obbligatori
@@ -39,7 +41,8 @@ public class Libro {
         }
 
         public LibroBuilder setValutazione(int valutazione) {
-            this.valutazione = valutazione;
+            if(valutazione <= 5 && valutazione >= 1)
+                this.valutazione = valutazione;
             return this;
         }
 
@@ -52,7 +55,7 @@ public class Libro {
             return new Libro(this);
         }
     }
-
+*/
     //------------------------------------------------------------------------------
 
     //usato per la conversione JSON
@@ -72,7 +75,17 @@ public class Libro {
             this.note = note;
     }
 
-    public Libro(LibroBuilder b){
+    public Libro(String titolo, String autore, String isbn, Genere genere){
+        this.titolo = titolo;
+        this.autore = autore;
+        this.ISBN = isbn;
+        this.Genere = genere;
+        this.statoLettura = StatoLettura.DA_LEGGERE;
+        this.valutazione = 0;
+        this.note = "";
+    }
+
+    /*public Libro(LibroBuilder b){
         titolo = b.titolo;
         autore = b.autore;
         ISBN = b.ISBN;
@@ -80,7 +93,7 @@ public class Libro {
         statoLettura = b.statoLettura;
         valutazione = b.valutazione;
         note = b.note;
-    }
+    }*/
 
     //GETTER E SETTER
     public String getAutore() {
@@ -114,7 +127,16 @@ public class Libro {
     }
 
     public void setValutazione(int valutazione) {
-        this.valutazione = valutazione;
+        if(valutazione <= 5 && valutazione >= 0)
+            this.valutazione = valutazione;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getNote() {
+        return note;
     }
 
     @Override
@@ -127,5 +149,20 @@ public class Libro {
                 ", statoLettura=" + statoLettura+'\''+
                 ", valutazione=" + valutazione +'\''+
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Libro libro = (Libro) obj;
+        return libro.getISBN().equals(this.getISBN());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + Objects.hashCode(this.ISBN);
+        return hash;
     }
 }

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class JsonStorageManager {
-    private static File file = new File(COSTANTI.percorso+"/libri.json");
+    private static File file = new File(COSTANTI.percorso+"/catalogo.json");
     private static final ObjectMapper mapper = new ObjectMapper();
 
 
@@ -19,7 +19,7 @@ public class JsonStorageManager {
     // Carica da JSON e restituisce una mappa ISBN -> model.Libro
     public static Map<String, Libro> caricamento() throws IOException {
         if (!file.exists()){
-            file = new File(COSTANTI.percorso+"/libri.json");
+            file = new File(COSTANTI.percorso+"/catalogo.json");
             return new HashMap<>();
         }
 

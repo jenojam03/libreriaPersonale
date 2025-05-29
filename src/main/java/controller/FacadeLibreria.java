@@ -6,12 +6,14 @@ import command.ModificaCommand;
 import command.RimuoviCommand;
 import model.*;
 import persistence.JsonStorageManager;
+import strategy.OrdinamentoStrategy;
+
 import java.io.IOException;
 import java.util.*;
 
 public class FacadeLibreria {
 
-        private final Libreria libreria = new Libreria();
+        private final Libreria libreria = Libreria.getInstance();
         private final HistoryCommandHandler handler = new HistoryCommandHandler();
 
         public FacadeLibreria() throws IOException {
@@ -65,14 +67,15 @@ public class FacadeLibreria {
 
 
         //metodo di ordinamento
-        public void ordina(CriterioOrdinamento criterio, boolean crescente) {
+        public void ordina(OrdinamentoStrategy strategia, boolean crescente) {
             List<Libro> libri = getDaVisualizzare();
-            switch (criterio) {
+            libreria.ordina(strategia, libri, crescente);
+            /*switch (criterio) {
                 case TITOLO: libreria.ordinaPerTitolo(libri, crescente); break;
                 case AUTORE:  libreria.ordinaPerAutore(libri, crescente); break;
                 case VALUTAZIONE:  libreria.ordinaPerValutazione(libri, crescente); break;
                 default:
-            }
+            }*/
         }
 
 
