@@ -1,5 +1,8 @@
 package model;
 import UI.*;
+import chain.Filtro;
+import chain.FiltroPerGenere;
+import chain.FiltroPerStato;
 import strategy.OrdinamentoStrategy;
 
 import java.util.*;
@@ -162,7 +165,7 @@ public class Libreria {
 
 
     public void filtra(Genere genere, StatoLettura stato, List<Libro> libriDaFiltrare) {
-        List<Libro> ret = new ArrayList<>();
+        /*List<Libro> ret = new ArrayList<>();
 
         for (Libro l : libriDaFiltrare) {
             boolean matchGenere = (genere == null || l.getGenere().equals(genere));
@@ -171,8 +174,10 @@ public class Libreria {
             if (matchGenere && matchStato) {
                 ret.add(l);
             }
-        }
-        daVisualizzare = ret;
+        }*/
+        Filtro filtro = new FiltroPerGenere(genere);
+        filtro.setNext(new FiltroPerStato(stato));
+        daVisualizzare = filtro.filtra(libriDaFiltrare);
         notifyObservers();
 
     }
