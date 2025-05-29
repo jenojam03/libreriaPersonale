@@ -7,7 +7,6 @@ import command.RimuoviCommand;
 import model.*;
 import persistence.JsonStorageManager;
 import strategy.OrdinamentoStrategy;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -30,6 +29,11 @@ public class FacadeLibreria {
         public Libreria getLibreria() {
             return libreria;
         }
+
+        public Map<String,Libro> getLibri() {
+            return libreria.getTuttiILibri();
+        }
+
 
         public boolean aggiungiLibro(Libro libro) throws IOException {
             boolean ret = handler.handle(new AggiungiCommand(libreria, libro));
@@ -57,12 +61,9 @@ public class FacadeLibreria {
             salva();
         }
 
-        public Map<String,Libro> getLibri() {
-            return libreria.getTuttiILibri();
-        }
 
         private void salva() throws IOException {
-            JsonStorageManager.salvataggio(libreria.getTuttiILibri());
+            JsonStorageManager.salvataggio(getLibri());
         }
 
 
@@ -70,33 +71,27 @@ public class FacadeLibreria {
         public void ordina(OrdinamentoStrategy strategia, boolean crescente) {
             List<Libro> libri = getDaVisualizzare();
             libreria.ordina(strategia, libri, crescente);
-            /*switch (criterio) {
-                case TITOLO: libreria.ordinaPerTitolo(libri, crescente); break;
-                case AUTORE:  libreria.ordinaPerAutore(libri, crescente); break;
-                case VALUTAZIONE:  libreria.ordinaPerValutazione(libri, crescente); break;
-                default:
-            }*/
         }
 
 
-    //metodo di filtraggio
-    public void filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare){
-            libreria.filtra(genere, stato, daFiltrare);
-    }
+        //metodo di filtraggio
+        public void filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare){
+                libreria.filtra(genere, stato, daFiltrare);
+        }
 
-    //metodo di ricerca: restituisce tutto ciò che matcha ciò che è stato inserito
-    public void ricerca(String criterio){
-        libreria.ricerca( criterio );
+        //metodo di ricerca: restituisce tutto ciò che matcha ciò che è stato inserito
+        public void ricerca(String criterio){
+            libreria.ricerca( criterio );
 
-    }
+        }
 
-    public void mostraTutti(){
+        public void mostraTutti(){
             libreria.mostraTutti();
-    }
+        }
 
-    public List<Libro> getDaVisualizzare(){
+        public List<Libro> getDaVisualizzare(){
             return libreria.getDaVisualizzare();
-    }
+        }
 
 
 }

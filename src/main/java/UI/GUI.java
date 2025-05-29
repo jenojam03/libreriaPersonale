@@ -5,12 +5,11 @@ import model.*;
 import strategy.OrdinaPerAutore;
 import strategy.OrdinaPerTitolo;
 import strategy.OrdinaPerValutazione;
-import strategy.OrdinamentoStrategy;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -31,36 +30,26 @@ public class GUI extends JFrame implements ObserverIF {
 
     public GUI() {
         try {
-            COSTANTI.percorso = ConfigManager.caricaPercorso();
+            //integrare save path example
+            if (ConfigManager.caricaPercorso() == null) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Seleziona percorso di salvataggio");
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setApproveButtonText("Salva");
 
-            if (COSTANTI.percorso == null) {
-                JDialog dialog = new JDialog((Frame) null, "Inserisci percorso", true);
-                JTextField campoPercorso = new JTextField(30);
-                JButton salvaButton = new JButton("Salva percorso");
+                int result = fileChooser.showSaveDialog(null);
 
-                JPanel panel = new JPanel(new BorderLayout(5, 5));
-                panel.add(new JLabel("Inserisci percorso:"), BorderLayout.NORTH);
-                panel.add(campoPercorso, BorderLayout.CENTER);
-                panel.add(salvaButton, BorderLayout.SOUTH);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
 
-                dialog.getContentPane().add(panel);
-                dialog.pack();
-                dialog.setLocationRelativeTo(null);
+                    // Salva solo la cartella del file scelto
+                    String filePath = selectedFile.getAbsolutePath();
 
-                salvaButton.addActionListener(e -> {
-                    String testo = campoPercorso.getText().trim();
-                    if (testo.isEmpty()) {
-                        JOptionPane.showMessageDialog(dialog, "Inserisci un percorso valido!", "Errore", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        COSTANTI.percorso = testo;
-                        ConfigManager.salvaPercorso(testo);
-                        dialog.dispose();
+                    if(!filePath.toLowerCase().endsWith(".json")) {
+                        filePath += ".json";
                     }
-                });
-
-                dialog.setVisible(true);
-
-                if (COSTANTI.percorso == null) {
+                    ConfigManager.salvaPercorso(filePath);
+                } else {
                     JOptionPane.showMessageDialog(null, "Nessun percorso selezionato. L'app verrà chiusa.");
                     System.exit(0);
                 }
@@ -80,15 +69,28 @@ public class GUI extends JFrame implements ObserverIF {
         updateCards(libriVisualizzati);
     }
 
-    private void costruisciInterfaccia() {
+    public void costruisciInterfaccia() {
         JFrame frame = new JFrame("Libreria");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-
-
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        //inizializzo bottoni
         JButton redoButton = new JButton("Redo");
+        JButton aggiungiBtn = new JButton("Aggiungi libro");
+        JTextField searchField = new JTextField(20);
+        JButton indietroButton = new JButton("Indietro");
+        JButton filtroBtn = new JButton("Filtra");
+
+        String[] ordini = {
+                "Titolo (A-Z)", "Titolo (Z-A)",
+                "Autore (A-Z)", "Autore (Z-A)",
+                "Valutazione (crescente)", "Valutazione (decrescente)"
+        };
+        JComboBox<String> ordinaBox = new JComboBox<>(ordini);
+        ordinaBox.setSelectedItem(null);
+
+        //LISTENER DEI BOTTONI
         //bottone undo
         undoButton = new JButton("Undo");
         undoButton.addActionListener(e -> {
@@ -102,7 +104,6 @@ public class GUI extends JFrame implements ObserverIF {
 
 
         //bottone redo
-
         redoButton.addActionListener(e -> {
             try {
                 facade.redo();
@@ -113,15 +114,12 @@ public class GUI extends JFrame implements ObserverIF {
         });
 
         //bottone aggiungi libro
-        JButton aggiungiBtn = new JButton("Aggiungi libro");
         aggiungiBtn.setEnabled(!ricercaAttiva);
         aggiungiBtn.addActionListener(ev -> {mostraFinestraAggiunta(); undoButton.setEnabled(true);} );
 
 
         //barra di ricerca
-        JTextField searchField = new JTextField(20);
         searchField.addActionListener(e -> {
-
             String query = searchField.getText().trim();
             if (!query.isEmpty()) {
                 facade.ricerca(query);
@@ -131,8 +129,8 @@ public class GUI extends JFrame implements ObserverIF {
             }
         });
 
+
         //indietro dalla ricerca
-        JButton indietroButton = new JButton("Indietro");
         indietroButton.addActionListener(e -> {
             facade.mostraTutti(); // metodo esistente nella tua classe Libreria
             filtroStato = null;
@@ -144,18 +142,12 @@ public class GUI extends JFrame implements ObserverIF {
 
 
         //bottone per il filtro
-        JButton filtroBtn = new JButton("Filtra");
         filtroBtn.addActionListener(e -> mostraFinestraFiltri());
 
-        String[] ordini = {
-                "Titolo (A-Z)", "Titolo (Z-A)",
-                "Autore (A-Z)", "Autore (Z-A)",
-                "Valutazione (crescente)", "Valutazione (decrescente)"
-        };
-        JComboBox<String> ordinaBox = new JComboBox<>(ordini);
+
+        //ordinamento
         ordinaBox.addActionListener(eve -> {
 
-            OrdinamentoStrategy strategy;
             String criterio = (String) ordinaBox.getSelectedItem();
             switch (criterio) {
                 case "Titolo (A-Z)" -> facade.ordina(new OrdinaPerTitolo(),true);
@@ -165,7 +157,6 @@ public class GUI extends JFrame implements ObserverIF {
                 case "Valutazione (crescente)" -> facade.ordina(new OrdinaPerValutazione(), true);
                 case "Valutazione (decrescente)" -> facade.ordina(new OrdinaPerValutazione(), false);
             };
-            //update();
         });
 
         topPanel.add(indietroButton);
@@ -395,7 +386,7 @@ public class GUI extends JFrame implements ObserverIF {
         JScrollPane genereScroll = new JScrollPane(generePanel);
         genereScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-        // ===== STATO LETTURA =====
+        //STATO LETTURA
         JPanel statoPanel = new JPanel();
         statoPanel.setLayout(new BoxLayout(statoPanel, BoxLayout.Y_AXIS));
         statoPanel.setBorder(BorderFactory.createTitledBorder("Stato lettura"));
@@ -433,7 +424,7 @@ public class GUI extends JFrame implements ObserverIF {
         filtriPanel.add(genereScroll);
         filtriPanel.add(statoPanel);
 
-        // ===== BOTTONE FILTRA =====
+        //BOTTONE FILTRA
         JButton filtraBtn = new JButton("Filtra");
         filtraBtn.addActionListener(e -> {
             filtroGenere = null;
@@ -457,15 +448,6 @@ public class GUI extends JFrame implements ObserverIF {
         dialog.add(filtriPanel, BorderLayout.CENTER);
         dialog.add(btnPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
-    }
-
-
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            GUI gui = new GUI();
-            gui.costruisciInterfaccia();
-        });
     }
 
 }

@@ -14,49 +14,6 @@ public class Libro {
     private int valutazione = 0; //DA 1 A 5
     private String note;
 
-    /*//INNER CLASS BUILDER PER LA COSTRUZIONE------------------------------------------------------------
-    public static class LibroBuilder {
-
-        //Parametri obbligatori
-        private final String titolo;
-        private final String autore;
-        private final String ISBN;
-        private final Genere Genere;
-
-        //Parametri opzionali (inizializzazioni di default)
-        private StatoLettura statoLettura = StatoLettura.DA_LEGGERE;
-        private int valutazione = 0;
-        private String note = "";
-
-        public LibroBuilder(String titolo, String autore, String ISBN, Genere Genere) {
-            this.titolo = titolo;
-            this.autore=autore;
-            this.ISBN = ISBN;
-            this.Genere = Genere;
-        }
-
-        public LibroBuilder setStatoLettura(StatoLettura statoLettura) {
-            this.statoLettura = statoLettura;
-            return this;
-        }
-
-        public LibroBuilder setValutazione(int valutazione) {
-            if(valutazione <= 5 && valutazione >= 1)
-                this.valutazione = valutazione;
-            return this;
-        }
-
-        public LibroBuilder setNote(String note) {
-            this.note = note;
-            return this;
-        }
-
-        public Libro build(){
-            return new Libro(this);
-        }
-    }
-*/
-    //------------------------------------------------------------------------------
 
     //usato per la conversione JSON
     public Libro(@JsonProperty("titolo") String titolo,
@@ -75,25 +32,18 @@ public class Libro {
             this.note = note;
     }
 
+    //di default si chiede all'utente di inserire solo questi campi, i restanti possono essere modificati poi
     public Libro(String titolo, String autore, String isbn, Genere genere){
         this.titolo = titolo;
         this.autore = autore;
         this.ISBN = isbn;
         this.Genere = genere;
+        //campi di default
         this.statoLettura = StatoLettura.DA_LEGGERE;
         this.valutazione = 0;
         this.note = "";
     }
 
-    /*public Libro(LibroBuilder b){
-        titolo = b.titolo;
-        autore = b.autore;
-        ISBN = b.ISBN;
-        Genere = b.Genere;
-        statoLettura = b.statoLettura;
-        valutazione = b.valutazione;
-        note = b.note;
-    }*/
 
     //GETTER E SETTER
     public String getAutore() {
@@ -118,13 +68,18 @@ public class Libro {
         return statoLettura;
     }
 
+    public int getValutazione() {
+        return valutazione;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
     public void setStatoLettura(StatoLettura statoLettura) {
         this.statoLettura = statoLettura;
     }
 
-    public int getValutazione() {
-        return valutazione;
-    }
 
     public void setValutazione(int valutazione) {
         if(valutazione <= 5 && valutazione >= 0)
@@ -135,9 +90,7 @@ public class Libro {
         this.note = note;
     }
 
-    public String getNote() {
-        return note;
-    }
+
 
     @Override
     public String toString() {
