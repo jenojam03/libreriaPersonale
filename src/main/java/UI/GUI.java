@@ -21,7 +21,7 @@ public class GUI extends JFrame implements ObserverIF {
     private List<Libro> libriVisualizzati = new ArrayList<>();
     private List<Libro> risultatiBase;
     private JButton undoButton;
-    private boolean ricercaAttiva = false;
+    //private boolean ricercaAttiva = false;
 
 
     //per il filtraggio
@@ -114,7 +114,7 @@ public class GUI extends JFrame implements ObserverIF {
         });
 
         //bottone aggiungi libro
-        aggiungiBtn.setEnabled(!ricercaAttiva);
+        //aggiungiBtn.setEnabled(!ricercaAttiva);
         aggiungiBtn.addActionListener(ev -> {mostraFinestraAggiunta(); undoButton.setEnabled(true);} );
 
 

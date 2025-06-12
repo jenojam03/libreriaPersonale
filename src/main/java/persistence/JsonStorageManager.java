@@ -20,7 +20,7 @@ public class JsonStorageManager {
     }
 
 
-    // Carica da JSON e restituisce una mappa ISBN -> model.Libro
+    // Carica da JSON e restituisce una mappa ISBN -> Libro
     public static Map<String, Libro> caricamento() throws IOException {
         File file = getFile();
         if (!file.exists()){
@@ -33,7 +33,7 @@ public class JsonStorageManager {
         return libri;
     }
 
-    // Salva una mappa ISBN -> model.Libro come lista ordinaria
+    // Salva una mappa ISBN -> Libro
     public static void salvataggio(Map<String, Libro> libri) throws IOException {
         File file = getFile();
         mapper.writerWithDefaultPrettyPrinter().writeValue(file, libri);

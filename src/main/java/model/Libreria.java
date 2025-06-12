@@ -11,21 +11,12 @@ import java.util.*;
 //classe che rappresenta il sistema
 public class Libreria {
 
-    private static Libreria instance;
 
     private Map<String, Libro> libri = new HashMap<>(); //archivio di tutti i libri
     private List<ObserverIF> observers = new ArrayList<>(); //supporto al pattern Observer
     private List<Libro> daVisualizzare = new ArrayList<>(libri.values()); //vista da fornire alla GUI
 
-    private Libreria() {}
 
-    //supporto al pattern singleton
-    public synchronized static Libreria getInstance() {
-        if (instance == null) {
-            instance = new Libreria();
-        }
-        return instance;
-    }
 
     public Libro getLibro(String isbn) {
         return libri.get(isbn);
@@ -86,19 +77,14 @@ public class Libreria {
     public void ricerca(String criterio) {
         Set<Libro> setTemporaneo = new HashSet<>();
 
-        //cerco in base al titolo
+        //cerco in base al titolo e autore
         for (Libro l : libri.values()) {
-            if (l.getTitolo().toLowerCase().contains(criterio.trim().toLowerCase())) {
+            if (l.getTitolo().toLowerCase().contains(criterio.trim().toLowerCase()) ||
+                    l.getAutore().toLowerCase().contains(criterio.trim().toLowerCase())) {
                 setTemporaneo.add(l);
             }
         }
 
-        //cerco per autore
-        for (Libro l : libri.values()) {
-            if (l.getAutore().toLowerCase().contains(criterio.trim().toLowerCase())) {
-                setTemporaneo.add(l);
-            }
-        }
 
         //cerco per isbn
         Libro l = libri.getOrDefault(criterio, null);

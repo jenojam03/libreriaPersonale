@@ -12,7 +12,7 @@ import java.util.*;
 
 public class FacadeLibreria {
 
-        private final Libreria libreria = Libreria.getInstance();
+        private final Libreria libreria = new Libreria();
         private final HistoryCommandHandler handler = new HistoryCommandHandler();
 
         public FacadeLibreria() throws IOException {
