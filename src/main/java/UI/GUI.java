@@ -243,7 +243,7 @@ public class GUI extends JFrame implements ObserverIF {
                 boolean ret = facade.aggiungiLibro(libro);
                 if (!ret) {
                     JOptionPane.showMessageDialog(dialog, "Il libro inserito esiste già. Correggi l'ISBN.", "Libro duplicato", JOptionPane.WARNING_MESSAGE);
-                    return; // NON chiudere la finestra, consenti la correzione
+                    return;
                 }
                 //dialog.dispose();
             } catch (IOException ex) {
@@ -294,8 +294,7 @@ public class GUI extends JFrame implements ObserverIF {
                     libro.getISBN(),
                     libro.getGenere(),
                     (StatoLettura) statoBox.getSelectedItem(),
-                    (Integer) valutazioneSpinner.getValue(),
-                    libro.getNote() // o puoi anche permettere di modificare le note, se vuoi
+                    (Integer) valutazioneSpinner.getValue()
             );
 
             try {
@@ -348,7 +347,7 @@ public class GUI extends JFrame implements ObserverIF {
 
         JPanel filtriPanel = new JPanel(new GridLayout(1, 2));
 
-        // ===== GENERE =====
+        //GENERE
         JPanel generePanel = new JPanel();
         generePanel.setLayout(new BoxLayout(generePanel, BoxLayout.Y_AXIS));
         generePanel.setBorder(BorderFactory.createTitledBorder("Genere"));

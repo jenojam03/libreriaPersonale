@@ -12,7 +12,6 @@ public class Libro {
     private final Genere Genere;
     private StatoLettura statoLettura;
     private int valutazione = 0; //DA 1 A 5
-    private String note;
 
 
     //usato per la conversione JSON
@@ -21,15 +20,13 @@ public class Libro {
                  @JsonProperty("isbn") String ISBN,
                  @JsonProperty("genere") Genere Genere,
                  @JsonProperty("statoLettura") StatoLettura statoLettura,
-                 @JsonProperty("valutazione") int valutazione,
-                 @JsonProperty("note") String note) {
+                 @JsonProperty("valutazione") int valutazione) {
             this.titolo = titolo;
             this.autore = autore;
             this.ISBN = ISBN;
             this.Genere = Genere;
             this.statoLettura = statoLettura;
             this.valutazione = valutazione;
-            this.note = note;
     }
 
     //di default si chiede all'utente di inserire solo questi campi, i restanti possono essere modificati poi
@@ -41,7 +38,6 @@ public class Libro {
         //campi di default
         this.statoLettura = StatoLettura.DA_LEGGERE;
         this.valutazione = 0;
-        this.note = "";
     }
 
 
@@ -72,9 +68,6 @@ public class Libro {
         return valutazione;
     }
 
-    public String getNote() {
-        return note;
-    }
 
     public void setStatoLettura(StatoLettura statoLettura) {
         this.statoLettura = statoLettura;
@@ -86,9 +79,6 @@ public class Libro {
             this.valutazione = valutazione;
     }
 
-    public void setNote(String note) {
-        this.note = note;
-    }
 
 
 

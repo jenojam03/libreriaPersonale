@@ -26,8 +26,7 @@ public class ModificaCommand implements Command{
                     originale.getISBN(),
                     originale.getGenere(),
                     originale.getStatoLettura(),
-                    originale.getValutazione(),
-                    originale.getNote()
+                    originale.getValutazione()
             );
             libreria.modificaLibro(isbn, nuovoLibro);
             return true;
