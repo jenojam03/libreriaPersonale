@@ -67,11 +67,11 @@ public class Libreria {
             if(filtro){
                 filtra(filtroGenere, filtroStato,risultatiRicerca);
             }
-        }else
+        }else {
             daVisualizzare = new ArrayList<>(libri.values());
-            if(filtro)
-                filtra(filtroGenere, filtroStato,daVisualizzare);
-
+            if (filtro)
+                filtra(filtroGenere, filtroStato, daVisualizzare);
+        }
 
         notifyObservers();
     }
@@ -173,17 +173,6 @@ public class Libreria {
         }
     }
 
-    public Genere getFiltroGenere() {
-        return filtroGenere;
-    }
-
-    public StatoLettura getFiltroStato() {
-        return filtroStato;
-    }
-
-    public String getParola() {
-        return parola;
-    }
 
     public boolean isRicerca() {
         return ricerca;
@@ -193,9 +182,6 @@ public class Libreria {
         this.ricerca = ricerca;
     }
 
-    public boolean isFiltro() {
-        return filtro;
-    }
 
     public void setFiltro(boolean filtro) {
         this.filtro = filtro;

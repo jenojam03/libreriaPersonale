@@ -61,5 +61,11 @@ public class HistoryCommandHandler implements CommandHandler {
 
     }
 
+    public LinkedList<Command> getHistory() {
+        return history;
+    }
 
+    public LinkedList<Command> getRedoList() {
+        return redoList;
+    }
 }

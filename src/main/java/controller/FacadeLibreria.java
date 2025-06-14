@@ -99,21 +99,6 @@ public class FacadeLibreria {
         }
 
 
-        public boolean isFiltroAttivo(){
-            return libreria.isFiltro();
-        }
-
-        public Genere getFiltroGenere(){
-            return libreria.getFiltroGenere();
-        }
-
-        public StatoLettura getFiltroStatoLettura(){
-            return libreria.getFiltroStato();
-        }
-
-        public String getParolaChiave(){
-            return libreria.getParola();
-        }
 
         public void setRicerca(boolean ricerca){
             libreria.setRicerca(ricerca);
@@ -134,5 +119,15 @@ public class FacadeLibreria {
         public void setParola(String parola){
             libreria.setParola(parola);
         }
+
+        //per abilitare e disabilitare in maniera intelligente i bottoni
+        public boolean canUndo() {
+            return !handler.getHistory().isEmpty();
+        }
+
+        public boolean canRedo() {
+            return !handler.getRedoList().isEmpty();
+        }
+
 
 }

@@ -20,7 +20,7 @@ public class GUI extends JFrame implements ObserverIF {
     private JPanel cardsPanel;
     private List<Libro> libriVisualizzati = new ArrayList<>();
     private JButton undoButton;
-
+    private JButton redoButton;
 
 
     //per il filtraggio
@@ -75,7 +75,7 @@ public class GUI extends JFrame implements ObserverIF {
         JPanel topPanel = new JPanel(new BorderLayout());
 
         //inizializzo bottoni
-        JButton redoButton = new JButton("Redo");
+        redoButton = new JButton("Redo");
         JButton aggiungiBtn = new JButton("Aggiungi libro");
         JTextField searchField = new JTextField(20);
         JButton indietroButton = new JButton("Indietro");
@@ -98,7 +98,8 @@ public class GUI extends JFrame implements ObserverIF {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            redoButton.setEnabled(true);
+            aggiornaBottoniUndoRedo();
+            //redoButton.setEnabled(true);
         });
 
 
@@ -109,11 +110,16 @@ public class GUI extends JFrame implements ObserverIF {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            undoButton.setEnabled(true);
+            aggiornaBottoniUndoRedo();
+            //undoButton.setEnabled(true);
         });
 
         //bottone aggiungi libro
-        aggiungiBtn.addActionListener(ev -> {mostraFinestraAggiunta(); undoButton.setEnabled(true);} );
+        aggiungiBtn.addActionListener(ev -> {
+            mostraFinestraAggiunta();
+            //undoButton.setEnabled(true);
+            aggiornaBottoniUndoRedo();
+        } );
 
 
         //barra di ricerca
@@ -177,7 +183,7 @@ public class GUI extends JFrame implements ObserverIF {
 
 
         cardsPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 15, 15));
-        cardsPanel.setPreferredSize(new Dimension(1000, 600));
+        cardsPanel.setPreferredSize(new Dimension(1000, 700));
 
         JScrollPane scrollPane = new JScrollPane(cardsPanel);
 
@@ -186,8 +192,7 @@ public class GUI extends JFrame implements ObserverIF {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 
-        redoButton.setEnabled(false);
-        undoButton.setEnabled(false);
+        aggiornaBottoniUndoRedo();
         leftPanel.add(undoButton);
         leftPanel.add(redoButton);
         rightPanel.add(aggiungiBtn);
@@ -212,13 +217,7 @@ public class GUI extends JFrame implements ObserverIF {
         for (Libro libro : libri) {
             JPanel card = new JPanel();
 
-            /*card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-            card.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            card.setPreferredSize(new Dimension(180, 120));
-            card.add(new JLabel("Titolo: " + libro.getTitolo()));
-            card.add(new JLabel("Autore: " + libro.getAutore()));
-            card.add(new JLabel("ISBN: " + libro.getISBN()));*/
-
+            //visualizzazione libro
             card.setLayout(new GridBagLayout());
             card.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             card.setPreferredSize(new Dimension(180, 120));
@@ -249,7 +248,8 @@ public class GUI extends JFrame implements ObserverIF {
             card.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     mostraFinestraModifica(libro);
-                    undoButton.setEnabled(true);
+                    //undoButton.setEnabled(true);
+                    aggiornaBottoniUndoRedo();
                 }
             });
             cardsPanel.add(card);
@@ -358,7 +358,8 @@ public class GUI extends JFrame implements ObserverIF {
             if (scelta == JOptionPane.YES_OPTION) {
                 try {
                     facade.rimuoviLibro(libro.getISBN());
-                    undoButton.setEnabled(true);
+                    //undoButton.setEnabled(true);
+                    aggiornaBottoniUndoRedo();
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -492,5 +493,11 @@ public class GUI extends JFrame implements ObserverIF {
         dialog.add(btnPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
+
+    private void aggiornaBottoniUndoRedo() {
+        undoButton.setEnabled(facade.canUndo());
+        redoButton.setEnabled(facade.canRedo());
+    }
+
 
 }
