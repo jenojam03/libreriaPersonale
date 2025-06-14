@@ -27,6 +27,8 @@ public class FacadeLibreriaTest {
         // Simula caricamento iniziale vuoto
         JsonStorageManager.salvataggio(new HashMap<>()); // evita errori statici
         facade = new FacadeLibreria();
+        facade.setRicerca(false);
+        facade.setFiltroAttivo(false);
         libro1 = new Libro("Piccole donne", "Louisa May Alcott", "123456789", Genere.ROMANZO, StatoLettura.LETTO, 5);
         libro2 = new Libro("Storia del nuovo cognome", "Elena Ferrante", "123789923", Genere.ROMANZO, StatoLettura.IN_LETTURA, 5);
     }
@@ -81,8 +83,7 @@ public class FacadeLibreriaTest {
         facade.aggiungiLibro(libro1);
         facade.aggiungiLibro(libro2);
 
-        List<Libro> daFiltrare = new ArrayList<>(List.of(libro1, libro2));
-        facade.filtra(Genere.ROMANZO, StatoLettura.LETTO, daFiltrare);
+        facade.filtra(Genere.ROMANZO, StatoLettura.LETTO);
 
         List<Libro> filtrati = facade.getDaVisualizzare();
         assertEquals(1, filtrati.size());

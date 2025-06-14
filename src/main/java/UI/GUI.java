@@ -19,9 +19,8 @@ public class GUI extends JFrame implements ObserverIF {
     private FacadeLibreria facade;
     private JPanel cardsPanel;
     private List<Libro> libriVisualizzati = new ArrayList<>();
-    private List<Libro> risultatiBase;
     private JButton undoButton;
-    //private boolean ricercaAttiva = false;
+
 
 
     //per il filtraggio
@@ -70,6 +69,7 @@ public class GUI extends JFrame implements ObserverIF {
     }
 
     public void costruisciInterfaccia() {
+
         JFrame frame = new JFrame("Libreria");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -122,10 +122,8 @@ public class GUI extends JFrame implements ObserverIF {
         searchField.addActionListener(e -> {
             String query = searchField.getText().trim();
             if (!query.isEmpty()) {
+                facade.setRicerca(true);
                 facade.ricerca(query);
-                aggiungiBtn.setEnabled(false);
-                //memorizzo i risultati della ricerca per poterli filtrare in modi diversi
-                risultatiBase = facade.getDaVisualizzare();
             }
         });
 
@@ -135,8 +133,13 @@ public class GUI extends JFrame implements ObserverIF {
             facade.mostraTutti(); // metodo esistente nella tua classe Libreria
             filtroStato = null;
             filtroGenere = null;
+            facade.setFiltroAttivo(false);
+            facade.setFiltroGenere(null);
+            facade.setFiltroStato(null);
+            facade.setRicerca(false);
+            facade.setParola(null);
             aggiungiBtn.setEnabled(true);
-            risultatiBase=facade.getDaVisualizzare();
+            searchField.setText("");
         });
 
 
@@ -189,8 +192,6 @@ public class GUI extends JFrame implements ObserverIF {
 
         facade.mostraTutti();
 
-        //inizializzato all'inizio
-        risultatiBase = facade.getDaVisualizzare();
 
         frame.setSize(1000, 700);
         frame.setVisible(true);
@@ -299,6 +300,8 @@ public class GUI extends JFrame implements ObserverIF {
 
             try {
                 facade.modificaLibro(libro.getISBN(), aggiornato);
+
+
             } catch (IOException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(dialog, "Errore durante la modifica.", "Errore", JOptionPane.ERROR_MESSAGE);
@@ -431,13 +434,15 @@ public class GUI extends JFrame implements ObserverIF {
 
             if (selezionatoGenere[0] != null) {
                 filtroGenere = Genere.valueOf(selezionatoGenere[0].getText());
+                facade.setFiltroGenere(filtroGenere);
             }
 
             if (selezionatoStato[0] != null) {
                 filtroStato = StatoLettura.valueOf(selezionatoStato[0].getText());
+                facade.setFiltroStato(filtroStato);
             }
 
-            facade.filtra(filtroGenere, filtroStato, risultatiBase);
+            facade.filtra(filtroGenere, filtroStato);
             dialog.dispose();
         });
 

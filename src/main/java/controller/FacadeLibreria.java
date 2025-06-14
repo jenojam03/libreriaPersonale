@@ -75,8 +75,13 @@ public class FacadeLibreria {
 
 
         //metodo di filtraggio
-        public void filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare){
-                libreria.filtra(genere, stato, daFiltrare);
+        public void filtra(Genere genere, StatoLettura stato){
+            List<Libro> daFiltrare;
+            if(libreria.isRicerca())
+                daFiltrare = libreria.getRisultatiRicerca();
+            else
+                daFiltrare = new ArrayList<>(libreria.getTuttiILibri().values());
+            libreria.filtra(genere, stato,daFiltrare);
         }
 
         //metodo di ricerca: restituisce tutto ciò che matcha ciò che è stato inserito
@@ -93,5 +98,41 @@ public class FacadeLibreria {
             return libreria.getDaVisualizzare();
         }
 
+
+        public boolean isFiltroAttivo(){
+            return libreria.isFiltro();
+        }
+
+        public Genere getFiltroGenere(){
+            return libreria.getFiltroGenere();
+        }
+
+        public StatoLettura getFiltroStatoLettura(){
+            return libreria.getFiltroStato();
+        }
+
+        public String getParolaChiave(){
+            return libreria.getParola();
+        }
+
+        public void setRicerca(boolean ricerca){
+            libreria.setRicerca(ricerca);
+        }
+
+        public void setFiltroAttivo(boolean filtro){
+            libreria.setFiltro(filtro);
+        }
+
+        public void setFiltroGenere(Genere genere){
+            libreria.setFiltroGenere(genere);
+        }
+
+        public void setFiltroStato(StatoLettura stato){
+            libreria.setFiltroStato(stato);
+        }
+
+        public void setParola(String parola){
+            libreria.setParola(parola);
+        }
 
 }

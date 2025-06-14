@@ -4,7 +4,6 @@ import chain.Filtro;
 import chain.FiltroPerGenere;
 import chain.FiltroPerStato;
 import strategy.OrdinamentoStrategy;
-
 import java.util.*;
 
 
@@ -16,7 +15,13 @@ public class Libreria {
     private List<ObserverIF> observers = new ArrayList<>(); //supporto al pattern Observer
     private List<Libro> daVisualizzare = new ArrayList<>(libri.values()); //vista da fornire alla GUI
 
-
+    //variabili di supporto per permettere ricerche e filtraggi innestati
+    private boolean ricerca, filtro;
+    private String parola;
+    private Genere filtroGenere;
+    private StatoLettura filtroStato;
+    private List<Libro> risultatiFiltro;
+    private List<Libro> risultatiRicerca;
 
     public Libro getLibro(String isbn) {
         return libri.get(isbn);
@@ -32,10 +37,14 @@ public class Libreria {
             return false;
         }
         libri.put(libro.getISBN(), libro);
-        daVisualizzare.add(libro);
-        notifyObservers();
+        visualizza();
+        /*daVisualizzare.add(libro);
+        notifyObservers();*/
         return true;
     }
+
+
+
 
     public void rimuoviLibro(String isbn) {
         Libro l = libri.remove(isbn);
@@ -43,22 +52,42 @@ public class Libreria {
         notifyObservers();
     }
 
+    private void visualizza(){
+        if(ricerca) {
+            daVisualizzare.clear();
+            List<Libro> lista = new ArrayList<>(libri.values());
+            for (Libro l : lista) {
+                if (l.getTitolo().toLowerCase().contains(parola.trim().toLowerCase()) ||
+                        l.getAutore().toLowerCase().contains(parola.trim().toLowerCase()) ||
+                        l.getISBN().contains(parola.trim().toLowerCase())) {
+                    daVisualizzare.add(l);
+                }
+                risultatiRicerca = daVisualizzare;
+            }
+            if(filtro){
+                filtra(filtroGenere, filtroStato,risultatiRicerca);
+            }
+        }else
+            daVisualizzare = new ArrayList<>(libri.values());
+            if(filtro)
+                filtra(filtroGenere, filtroStato,daVisualizzare);
+
+
+        notifyObservers();
+    }
+
     public void modificaLibro(String isbn, Libro libroAggiornato) {
         libri.put(isbn, libroAggiornato);
-        int index = -1;
-        for(Libro l : daVisualizzare){
-            if(l.getISBN().equals(isbn)) {
-                index = daVisualizzare.indexOf(l);
-            }
-        }
-        daVisualizzare.set(index, libroAggiornato);
-        notifyObservers();
+        visualizza();
     }
 
 
 
     public void mostraTutti(){
         daVisualizzare = new ArrayList<>(libri.values());
+        risultatiFiltro = daVisualizzare;
+        ricerca = false;
+        filtro = false;
         notifyObservers();
     }
 
@@ -76,35 +105,45 @@ public class Libreria {
     //RICERCA
     public void ricerca(String criterio) {
         Set<Libro> setTemporaneo = new HashSet<>();
+        parola = criterio;
+        Collection<Libro> lista;
 
-        //cerco in base al titolo e autore
-        for (Libro l : libri.values()) {
+        //se c'è un filtro attivo, la ricerca avviene filtrando i libri restituiti dal filtro
+        if(filtro)
+            lista = risultatiFiltro;
+        else
+            lista = libri.values();
+
+        for (Libro l : lista) {
             if (l.getTitolo().toLowerCase().contains(criterio.trim().toLowerCase()) ||
-                    l.getAutore().toLowerCase().contains(criterio.trim().toLowerCase())) {
+                    l.getAutore().toLowerCase().contains(criterio.trim().toLowerCase()) ||
+            l.getISBN().contains(criterio.trim().toLowerCase())) {
                 setTemporaneo.add(l);
             }
         }
 
 
-        //cerco per isbn
-        Libro l = libri.getOrDefault(criterio, null);
-        if(l != null) {
-            setTemporaneo.add(l);
-        }
-
-
         daVisualizzare = new ArrayList<>(setTemporaneo);
+        risultatiRicerca = daVisualizzare;
         notifyObservers();
 
     }
 
 
-    //FILTRAGGIO
-    public void filtra(Genere genere, StatoLettura stato, List<Libro> libriDaFiltrare) {
 
+
+    //FILTRAGGIO
+    public void filtra(Genere genere, StatoLettura stato, List<Libro> daFiltrare) {
+
+        filtro =true;
         Filtro filtro = new FiltroPerGenere(genere);
         filtro.setNext(new FiltroPerStato(stato));
-        daVisualizzare = filtro.filtra(libriDaFiltrare);
+        daVisualizzare = filtro.filtra(daFiltrare);
+
+        //se non è già attiva una ricerca, i risultati restituiti dal filtraggio costituiranno
+        //la base per effettuare una nuova ricerca
+        if(!ricerca)
+            risultatiFiltro = daVisualizzare;
         notifyObservers();
 
     }
@@ -132,5 +171,49 @@ public class Libreria {
         for(ObserverIF o : observers){
             o.update();
         }
+    }
+
+    public Genere getFiltroGenere() {
+        return filtroGenere;
+    }
+
+    public StatoLettura getFiltroStato() {
+        return filtroStato;
+    }
+
+    public String getParola() {
+        return parola;
+    }
+
+    public boolean isRicerca() {
+        return ricerca;
+    }
+
+    public void setRicerca(boolean ricerca) {
+        this.ricerca = ricerca;
+    }
+
+    public boolean isFiltro() {
+        return filtro;
+    }
+
+    public void setFiltro(boolean filtro) {
+        this.filtro = filtro;
+    }
+
+    public void setFiltroGenere(Genere filtroGenere) {
+        this.filtroGenere = filtroGenere;
+    }
+
+    public void setFiltroStato(StatoLettura statoLettura) {
+        this.filtroStato = statoLettura;
+    }
+
+    public void setParola(String parola) {
+        this.parola = parola;
+    }
+
+    public List<Libro> getRisultatiRicerca() {
+        return risultatiRicerca;
     }
 }
