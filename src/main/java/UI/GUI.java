@@ -29,7 +29,6 @@ public class GUI extends JFrame implements ObserverIF {
 
     public GUI() {
         try {
-            //integrare save path example
             if (ConfigManager.caricaPercorso() == null) {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogTitle("Seleziona percorso di salvataggio");
@@ -73,7 +72,7 @@ public class GUI extends JFrame implements ObserverIF {
         JFrame frame = new JFrame("Libreria");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel topPanel = new JPanel(new BorderLayout());
 
         //inizializzo bottoni
         JButton redoButton = new JButton("Redo");
@@ -114,7 +113,6 @@ public class GUI extends JFrame implements ObserverIF {
         });
 
         //bottone aggiungi libro
-        //aggiungiBtn.setEnabled(!ricercaAttiva);
         aggiungiBtn.addActionListener(ev -> {mostraFinestraAggiunta(); undoButton.setEnabled(true);} );
 
 
@@ -162,14 +160,25 @@ public class GUI extends JFrame implements ObserverIF {
             };
         });
 
-        topPanel.add(indietroButton);
-        topPanel.add(new JLabel("Cerca:"));
-        topPanel.add(searchField);
-        topPanel.add(filtroBtn);
-        topPanel.add(new JLabel("Ordina per:"));
-        topPanel.add(ordinaBox);
+        JPanel leftControls = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        leftControls.add(indietroButton);
+        leftControls.add(new JLabel("Cerca:"));
+        leftControls.add(searchField);
+
+        JPanel rightControls = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightControls.add(filtroBtn);
+        rightControls.add(new JLabel("Ordina per:"));
+        rightControls.add(ordinaBox);
+
+        topPanel.add(leftControls, BorderLayout.WEST);
+        topPanel.add(rightControls, BorderLayout.EAST);
+
+
+
 
         cardsPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 15, 15));
+        cardsPanel.setPreferredSize(new Dimension(1000, 600));
+
         JScrollPane scrollPane = new JScrollPane(cardsPanel);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -190,6 +199,7 @@ public class GUI extends JFrame implements ObserverIF {
         frame.add(scrollPane, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
+
         facade.mostraTutti();
 
 
@@ -201,12 +211,41 @@ public class GUI extends JFrame implements ObserverIF {
         cardsPanel.removeAll();
         for (Libro libro : libri) {
             JPanel card = new JPanel();
-            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+            /*card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
             card.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             card.setPreferredSize(new Dimension(180, 120));
             card.add(new JLabel("Titolo: " + libro.getTitolo()));
             card.add(new JLabel("Autore: " + libro.getAutore()));
-            card.add(new JLabel("ISBN: " + libro.getISBN()));
+            card.add(new JLabel("ISBN: " + libro.getISBN()));*/
+
+            card.setLayout(new GridBagLayout());
+            card.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            card.setPreferredSize(new Dimension(180, 120));
+
+            JPanel innerPanel = new JPanel();
+            innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
+            innerPanel.setOpaque(false);
+            innerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel titoloLabel = new JLabel(libro.getTitolo());
+            JLabel autoreLabel = new JLabel(libro.getAutore());
+            JLabel isbnLabel = new JLabel(libro.getISBN());
+
+            Font font = new Font("Arial", Font.BOLD, 14);
+            titoloLabel.setFont(font);
+            autoreLabel.setFont(font);
+            isbnLabel.setFont(font);
+            titoloLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            autoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            isbnLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            innerPanel.add(titoloLabel);
+            innerPanel.add(autoreLabel);
+            innerPanel.add(isbnLabel);
+            card.add(innerPanel);
+
+
             card.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     mostraFinestraModifica(libro);
