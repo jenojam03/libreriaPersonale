@@ -1,4 +1,4 @@
-package UI;
+package persistence;
 
 import java.io.*;
 import java.util.Properties;

@@ -2,6 +2,7 @@ package UI;
 
 import controller.FacadeLibreria;
 import model.*;
+import persistence.ConfigManager;
 import strategy.OrdinaPerAutore;
 import strategy.OrdinaPerTitolo;
 import strategy.OrdinaPerValutazione;
@@ -400,7 +401,7 @@ public class GUI extends JFrame implements ObserverIF {
 
         for (Genere g : Genere.values()) {
             JToggleButton btn = new JToggleButton(g.toString());
-            btn.setMaximumSize(new Dimension(200, 25)); // Rimpiccioliti
+            btn.setMaximumSize(new Dimension(200, 25));
             btn.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             if (filtroGenere != null && g == filtroGenere) {

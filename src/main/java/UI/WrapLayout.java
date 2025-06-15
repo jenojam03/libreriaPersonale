@@ -1,11 +1,7 @@
 package UI;
 
 import java.awt.*;
-import javax.swing.*;
 
-/**
- * WrapLayout è una versione migliorata di FlowLayout che consente il wrapping su più righe.
- */
 public class WrapLayout extends FlowLayout {
 
     public WrapLayout() {
